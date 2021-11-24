@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 
-abstract class BaseActivity<DB: ViewDataBinding> : AppCompatActivity(), BaseNavigator {
+abstract class BaseActivity<DB: ViewDataBinding> : AppCompatActivity() {
     lateinit var  mBinding: DB
 
     abstract fun getLayoutResourceId(): Int
@@ -15,5 +15,7 @@ abstract class BaseActivity<DB: ViewDataBinding> : AppCompatActivity(), BaseNavi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = DataBindingUtil.setContentView(this, getLayoutResourceId())
+        initDataBinding()
+        initView()
     }
 }

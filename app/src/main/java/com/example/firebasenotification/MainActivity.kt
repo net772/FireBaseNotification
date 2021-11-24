@@ -1,9 +1,11 @@
 package com.example.firebasenotification
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.util.Log
 import androidx.activity.viewModels
 import com.example.firebasenotification.databinding.ActivityMainBinding
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun getLayoutResourceId() = R.layout.activity_main
@@ -15,6 +17,38 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun initView() {
-        TODO("Not yet implemented")
+        initFirebase()
+        updateResult()
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        setIntent(intent)
+        updateResult(true)
+    }
+
+    private fun initFirebase() {
+
+        Log.d("동현","initFirebase")
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("동현","initFirebase : ${task.result}")
+                    mBinding.firebaseTokenTextView.text = task.result
+                } else {
+                    Log.d("동현","initFirebase 실패")
+                }
+            }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateResult(isNewIntent: Boolean = false) {
+        mBinding.resultTextView.text = (intent.getStringExtra("notificationType") ?: "앱 런처") +
+                if (isNewIntent) {
+                    "(으)로 갱신했습니다."
+                } else {
+                    "(으)로 실행했습니다."
+                }
     }
 }
