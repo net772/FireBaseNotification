@@ -13,7 +13,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun initDataBinding() {
         mBinding.vm = viewModel
-        viewModel.init(applicationContext, this)
+        //viewModel.init(applicationContext, this)
     }
 
     override fun initView() {
@@ -24,21 +24,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
-        setIntent(intent)
+        setIntent(intent) // 새로 들어온 인텐트로 교체
         updateResult(true)
     }
 
+    // firebase 토큰 가져오기
     private fun initFirebase() {
-
-        Log.d("동현","initFirebase")
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("동현","initFirebase : ${task.result}")
                     mBinding.firebaseTokenTextView.text = task.result
-                } else {
-                    Log.d("동현","initFirebase 실패")
-                }
+                } else { }
             }
     }
 

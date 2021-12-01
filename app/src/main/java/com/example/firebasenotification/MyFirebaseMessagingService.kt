@@ -8,27 +8,33 @@ import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
+/** 다음과 같은 경우 토큰이 변경될 수 있다.
+ * - 새 기기에서 앱 복원하는 경우
+ * - 사용자가 앱 삭제/재설치 하는 경우
+ * - 사용자가 앱 데이터 소거하는 경우
+ */
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
+    // 토큰이 갱신 될 때마다 이 곳에서 작업처리를 해주면 된다.
     override fun onNewToken(p0: String) {
         super.onNewToken(p0)
-        // Apps that use Firebase Cloud Messaging should implement onNewToken()
-        // in order to observe token changes
     }
 
+    // 메시지 수신시마다 실행
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
+        // 채널 생성
         createNotificationChannelIfNeeded()
 
-        val type = remoteMessage.data["type"]
-            ?.let { NotificationType.valueOf(it) }
+        val type = remoteMessage.data["type"]?.let { NotificationType.valueOf(it) }
         val title = remoteMessage.data["title"]
         val message = remoteMessage.data["message"]
 
@@ -52,41 +58,33 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun createNotification(
-        type: NotificationType,
-        title: String?,
-        message: String?
-    ): Notification {
+    private fun createNotification(type: NotificationType, title: String?, message: String?): Notification {
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("notificationType", "${type.title} 타입")
             addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         val pendingIntent = PendingIntent.getActivity(this, type.id, intent, FLAG_UPDATE_CURRENT)
+        // 실제 알림 컨텐츠 만들기
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_baseline_circle_notifications_24)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setSmallIcon(R.drawable.ic_baseline_circle_notifications_24) // 아이콘 보여주기
+            .setContentTitle(title) // 타이틀
+            .setContentText(message) // 메시지 내용
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)  // 오레오 이하 버전에서는 지정 필요
             .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
+            .setAutoCancel(true) // 알림 클릭 시 자동 제거
 
         when (type) {
             NotificationType.NORMAL -> Unit
             NotificationType.EXPANDABLE -> {
                 notificationBuilder.setStyle(
-                    NotificationCompat.BigTextStyle()
+                    NotificationCompat.BigTextStyle() // 확장 가능한 알림
                         .bigText(
-                            "😀 😃 😄 😁 😆 😅 😂 🤣 🥲 ☺️ 😊 😇 " +
-                                    "🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 " +
-                                    "😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 " +
-                                    "😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 " +
-                                    "😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 " +
-                                    "😥 😓 🤗 🤔 🤭 🤫 🤥 😶 😐 😑 😬 🙄 " +
-                                    "😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 " +
-                                    "🤢 🤮 🤧 😷 🤒 🤕"
+                            "😀 😃 😄 😁" +
+                                "🤢 🤮 🤧 😷  🤕"
                         )
                 )
             }
+            //커스텀 알림
             NotificationType.CUSTOM -> {
                 notificationBuilder
                     .setStyle(NotificationCompat.DecoratedCustomViewStyle())
@@ -101,7 +99,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     )
             }
         }
-
         return notificationBuilder.build()
     }
 
